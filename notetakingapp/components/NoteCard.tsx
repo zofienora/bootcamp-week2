@@ -32,9 +32,11 @@ export function NoteCard({
           {new Date(note.updatedAt).toLocaleDateString()}
         </div>
       </div>
+
       <p className="text-sm text-gray-700 mt-2 whitespace-pre-wrap flex-1">
         {note.content}
       </p>
+
       <div className="mt-4 flex gap-2">
         <button
           className={cn(
@@ -46,6 +48,7 @@ export function NoteCard({
         >
           Edit
         </button>
+
         <button
           className={cn(
             "rounded-xl border px-3 py-1.5 text-sm hover:shadow",
