@@ -13,11 +13,28 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   try {
     const userId = getUserId();
     const body = await req.json();
+    
+    const updateData: any = {
+      title: body.title,
+      content: body.content,
+      userId
+    };
+    
+    if (body.tags !== undefined) {
+      updateData.tags = JSON.stringify(body.tags);
+    }
+    
     const note = await prisma.note.update({
       where: { id: params.id },
-      data: { title: body.title, content: body.content, userId },
+      data: updateData,
     });
-    return NextResponse.json({ note });
+    
+    return NextResponse.json({ 
+      note: {
+        ...note,
+        tags: body.tags || JSON.parse(note.tags || '[]')
+      }
+    });
   } catch {
     return NextResponse.json({ error: "Failed to update note" }, { status: 500 });
   }

@@ -2,7 +2,6 @@
 
 import { cn } from "@/lib/utils";
 import React, { useState } from "react";
-import { TagEditor } from "./TagEditor";
 
 type Note = {
   id: string;
@@ -18,49 +17,27 @@ export function NoteCard({
   note,
   onEdit,
   onDelete,
-  onUpdateTags,
   pending,
 }: {
   note: Note;
   onEdit: (note: Note) => void;
   onDelete: (id: string) => Promise<void>;
-  onUpdateTags?: (id: string, tags: string[], topics: string[]) => Promise<void>;
   pending?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
-  const [isEditingTags, setIsEditingTags] = useState(false);
-  const [localTags, setLocalTags] = useState<string[]>([]);
-  const [localTopics, setLocalTopics] = useState<string[]>([]);
 
-  // Initialize local state from note data
-  React.useEffect(() => {
-    const parseArray = (value: string | string[] | undefined): string[] => {
-      if (!value) return [];
-      if (Array.isArray(value)) return value;
-      try {
-        return JSON.parse(value);
-      } catch {
-        return [];
-      }
-    };
-    
-    setLocalTags(parseArray(note.tags));
-    setLocalTopics(parseArray(note.topics));
-  }, [note.tags, note.topics]);
-
-  const handleSaveTags = async () => {
-    if (onUpdateTags) {
-      setBusy(true);
-      try {
-        await onUpdateTags(note.id, localTags, localTopics);
-        setIsEditingTags(false);
-      } catch (error) {
-        console.error('Failed to update tags:', error);
-      } finally {
-        setBusy(false);
-      }
+  // Parse tags from note data
+  const parseArray = (value: string | string[] | undefined): string[] => {
+    if (!value) return [];
+    if (Array.isArray(value)) return value;
+    try {
+      return JSON.parse(value);
+    } catch {
+      return [];
     }
   };
+  
+  const tags = parseArray(note.tags);
 
   return (
     <div className="rounded-2xl border bg-white shadow-sm p-4 flex flex-col">
@@ -71,17 +48,18 @@ export function NoteCard({
         </div>
       </div>
 
-      {/* AI Tags and Topics */}
-      {(localTopics.length > 0 || localTags.length > 0 || isEditingTags) && (
-        <TagEditor
-          tags={localTags}
-          topics={localTopics}
-          onTagsChange={setLocalTags}
-          onTopicsChange={setLocalTopics}
-          onSave={handleSaveTags}
-          isEditing={isEditingTags}
-          onToggleEdit={() => setIsEditingTags(!isEditingTags)}
-        />
+      {/* Hashtags */}
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-2">
+          {tags.map((tag, index) => (
+            <span
+              key={index}
+              className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full"
+            >
+              #{tag}
+            </span>
+          ))}
+        </div>
       )}
 
       <p className="text-sm text-gray-700 mt-2 whitespace-pre-wrap flex-1">

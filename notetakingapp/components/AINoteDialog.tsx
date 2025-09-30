@@ -15,8 +15,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { AIAnalysis } from "./AIAnalysis";
 
-export type NoteInput = { title: string; content: string };
-export type Note = { id?: string; title: string; content: string };
+export type NoteInput = { title: string; content: string; tags?: string[] };
+export type Note = { id?: string; title: string; content: string; tags?: string[] };
 
 interface AINoteDialogProps {
   mode: "create" | "edit";
@@ -42,6 +42,8 @@ export function AINoteDialog({
   const setOpen = onOpenChange || setInternalOpen;
   const [title, setTitle] = React.useState(initial?.title ?? "");
   const [content, setContent] = React.useState(initial?.content ?? "");
+  const [tags, setTags] = React.useState<string[]>(initial?.tags ?? []);
+  const [newTag, setNewTag] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
   
@@ -54,11 +56,12 @@ export function AINoteDialog({
     if (open) {
       setTitle(initial?.title ?? "");
       setContent(initial?.content ?? "");
+      setTags(initial?.tags ?? []);
       setErr(null);
       setAiAnalysis(null);
       setShowAIAnalysis(false);
     }
-  }, [open, initial?.title, initial?.content]);
+  }, [open, initial?.title, initial?.content, initial?.tags]);
 
   const analyzeContent = async () => {
     if (!content.trim()) return;
@@ -130,11 +133,29 @@ export function AINoteDialog({
     setContent(improvement);
   };
 
+  const addTag = () => {
+    if (newTag.trim() && !tags.includes(newTag.trim())) {
+      setTags([...tags, newTag.trim()]);
+      setNewTag("");
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setTags(tags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleTagKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addTag();
+    }
+  };
+
   const submit = async () => {
     setBusy(true);
     setErr(null);
     try {
-      await onSubmit({ title: title.trim(), content: content.trim() });
+      await onSubmit({ title: title.trim(), content: content.trim(), tags });
       setOpen(false);
     } catch (e) {
       setErr("Something went wrong. Please try again.");
@@ -185,6 +206,45 @@ export function AINoteDialog({
                 onChange={(e) => setContent(e.target.value)}
                 className="min-h-[200px]"
               />
+              
+              {/* Hashtags */}
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-1">
+                  {tags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full flex items-center gap-1"
+                    >
+                      #{tag}
+                      <button
+                        type="button"
+                        onClick={() => removeTag(tag)}
+                        className="text-purple-500 hover:text-purple-700"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    onKeyPress={handleTagKeyPress}
+                    placeholder="Add hashtag..."
+                    className="flex-1 px-2 py-1 text-sm border rounded"
+                  />
+                  <button
+                    type="button"
+                    onClick={addTag}
+                    className="px-3 py-1 text-sm bg-purple-100 text-purple-700 rounded hover:bg-purple-200"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+              
               {err && <p className="text-sm text-red-600">{err}</p>}
             </div>
 

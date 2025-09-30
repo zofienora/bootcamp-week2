@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       data: {
         title: body.title,
         content: body.content,
-        tags: analysis ? JSON.stringify(analysis.tags) : null,
+        tags: body.tags ? JSON.stringify(body.tags) : (analysis ? JSON.stringify(analysis.tags) : null),
         topics: analysis ? JSON.stringify(analysis.topics) : null,
         userId,
       },
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ 
       note: {
         ...note,
-        tags: analysis?.tags || [],
+        tags: body.tags || analysis?.tags || [],
         topics: analysis?.topics || [],
         suggestions: analysis?.suggestions || [],
         improvements: analysis?.improvements || '',

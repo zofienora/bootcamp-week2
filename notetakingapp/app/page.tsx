@@ -11,6 +11,7 @@ type NoteDTO = {
   content: string;
   createdAt: string;
   updatedAt: string;
+  tags?: string | string[];
 };
 
 export default function Dashboard() {
@@ -62,7 +63,7 @@ export default function Dashboard() {
     }
   }
 
-  async function updateNote(id: string, input: { title: string; content: string }) {
+  async function updateNote(id: string, input: { title: string; content: string; tags?: string[] }) {
     setPending(true);
     try {
       const res = await fetch(`/api/notes/${id}`, {
@@ -86,21 +87,6 @@ export default function Dashboard() {
       setNotes(prev ?? null); // rollback
       alert("Failed to delete note.");
     }
-  }
-
-  async function updateNoteTags(id: string, tags: string[], topics: string[]) {
-    const res = await fetch(`/api/notes/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tags, topics }),
-    });
-    if (!res.ok) {
-      throw new Error("Failed to update tags");
-    }
-    const data = await res.json();
-    setNotes((prev) =>
-      prev?.map((note) => (note.id === id ? { ...note, tags: data.note.tags, topics: data.note.topics } : note)) ?? null
-    );
   }
 
   return (
@@ -134,7 +120,6 @@ export default function Dashboard() {
               pending={pending}
               onEdit={(note /* NoteDTO */) => setEditing( note)}
               onDelete={deleteNote}
-              onUpdateTags={updateNoteTags}
             />
           ))}
         </div>
@@ -144,8 +129,21 @@ export default function Dashboard() {
       {editing && (
         <AINoteDialog
           mode="edit"
-          // AINoteDialog expects { id?: string; title; content }
-          initial={{ id: editing.id, title: editing.title, content: editing.content }}
+          // AINoteDialog expects { id?: string; title; content; tags }
+          initial={{ 
+            id: editing.id, 
+            title: editing.title, 
+            content: editing.content,
+            tags: (() => {
+              if (!editing.tags) return [];
+              if (Array.isArray(editing.tags)) return editing.tags;
+              try {
+                return JSON.parse(editing.tags);
+              } catch {
+                return [];
+              }
+            })()
+          }}
           onSubmit={async (i) => {
             await updateNote(editing.id, i);
             setEditing(null);
