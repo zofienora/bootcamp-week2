@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { NoteCard } from "@/components/NoteCard";
-import { NoteDialog } from "@/components/NoteDialog"; // ← don't import Note type here
+import { AINoteDialog } from "@/components/AINoteDialog"; // ← AI-powered dialog
 import { cn } from "@/lib/utils";
 
 type NoteDTO = {
@@ -93,7 +93,7 @@ export default function Dashboard() {
       <div className="flex items-center justify-between gap-3 mb-6">
         <h1 className="text-3xl font-bold">Notes</h1>
 
-        <NoteDialog
+        <AINoteDialog
           mode="create"
           onSubmit={async (i) => createNote(i)}
           triggerClassName="ml-auto"
@@ -126,17 +126,21 @@ export default function Dashboard() {
 
       {/* Edit dialog */}
       {editing && (
-        <NoteDialog
+        <AINoteDialog
           mode="edit"
-          // NoteDialog expects { id?: string; title; content }
+          // AINoteDialog expects { id?: string; title; content }
           initial={{ id: editing.id, title: editing.title, content: editing.content }}
           onSubmit={async (i) => {
             await updateNote(editing.id, i);
             setEditing(null);
           }}
+          open={!!editing}
+          onOpenChange={(open) => {
+            if (!open) setEditing(null);
+          }}
         >
           <button className="hidden" />
-        </NoteDialog>
+        </AINoteDialog>
       )}
     </main>
   );
