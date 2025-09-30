@@ -23,6 +23,37 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
+export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+  try {
+    const userId = getUserId();
+    const body = await req.json();
+    
+    // Update only tags and topics
+    const updateData: any = {};
+    if (body.tags !== undefined) {
+      updateData.tags = JSON.stringify(body.tags);
+    }
+    if (body.topics !== undefined) {
+      updateData.topics = JSON.stringify(body.topics);
+    }
+    
+    const note = await prisma.note.update({
+      where: { id: params.id, userId },
+      data: updateData,
+    });
+    
+    return NextResponse.json({ 
+      note: {
+        ...note,
+        tags: body.tags || JSON.parse(note.tags || '[]'),
+        topics: body.topics || JSON.parse(note.topics || '[]')
+      }
+    });
+  } catch {
+    return NextResponse.json({ error: "Failed to update tags/topics" }, { status: 500 });
+  }
+}
+
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
   try {
     const userId = getUserId();

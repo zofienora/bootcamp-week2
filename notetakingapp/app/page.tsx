@@ -88,6 +88,21 @@ export default function Dashboard() {
     }
   }
 
+  async function updateNoteTags(id: string, tags: string[], topics: string[]) {
+    const res = await fetch(`/api/notes/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tags, topics }),
+    });
+    if (!res.ok) {
+      throw new Error("Failed to update tags");
+    }
+    const data = await res.json();
+    setNotes((prev) =>
+      prev?.map((note) => (note.id === id ? { ...note, tags: data.note.tags, topics: data.note.topics } : note)) ?? null
+    );
+  }
+
   return (
     <main className="mx-auto max-w-6xl p-6">
       <div className="flex items-center justify-between gap-3 mb-6">
@@ -119,6 +134,7 @@ export default function Dashboard() {
               pending={pending}
               onEdit={(note /* NoteDTO */) => setEditing( note)}
               onDelete={deleteNote}
+              onUpdateTags={updateNoteTags}
             />
           ))}
         </div>
