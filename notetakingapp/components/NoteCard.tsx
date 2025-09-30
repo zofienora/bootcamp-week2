@@ -7,8 +7,8 @@ type Note = {
   id: string;
   title: string;
   content: string;
-  createdAt: string | Date;
-  updatedAt: string | Date;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export function NoteCard({
